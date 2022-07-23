@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('checkout code') {
+            steps {
+                git credentialsId: '15e3d803-dd27-494f-80d5-e901267bc1a5', url: 'git@git.netcracker.com:vira0722/sequence10.git'
+            }
+        }
+        stage('verift IP Address') {
+            steps {
+                script{
+                println IP_ADDRESS
+                def datas = readYaml file: "sample.yml"
+                def PING = datas.ping
+                def TEL = datas.telnet
+                println TEL
+                if ( TEL.contains(IP_ADDRESS)){
+                    println "present in telnet"
+                    println "checking for reachability"
+                    REACH = sh (script: "telnet ${IP_ADDRESS} 22", returnStatus: true) == 0
+                    echo "Build full flag: ${REACH}"
+                    if (REACH){
+                        println "server reachable"
+                    }
+                    else{
+                        println "server not reachable"
+                    }
+                }
+                else{
+                    println "Not presnt in telnet"
+                }
+                
+                if ( PING.contains(IP_ADDRESS)){
+                    println "present in ping"
+                    println "checking for reachability"
+                    REACH = sh (script: "ping -c 3 ${IP_ADDRESS}", returnStatus: true) == 0
+                    echo "Build full flag: ${REACH}"
+                    if (REACH){
+                        println "server reachable"
+                    }else{
+                        println "server not reachable"
+                    }
+                }
+                else{
+                    println "Not presnt in ping"
+                }
+            }
+        }
+     }
+     stage('builddockerImage') {
+         steps {
+            sh "docker build -t nginx:v${BUILD_NUMBER} ."
+         }
+      }
+      stage('RunDockercontainer') {
+          steps {
+              sh "docker run -d -p 80:80 -it ngnix:v${BUILD_NUMBER} /bin/bash"
+          }
+      }
+    }
+}
