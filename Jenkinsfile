@@ -6,6 +6,6 @@ node {
     }
     stage('Build Dockr Image') {
         sh "docker build -t ngnix:v${BUILD_NUMBER} ."
-        sh "docker run -d -p 800${BUILD_NUMBER}:80 -it ngnix:v${BUILD_NUMBER} /bin/bash"
+        sh "docker run -d -p 80${BUILD_NUMBER}:80 -it ngnix:v${BUILD_NUMBER} /bin/bash"
     }
 }
